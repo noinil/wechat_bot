@@ -1,5 +1,5 @@
-#!/usr/bin/env python
-# coding: utf-8
+#!/usr/bin/env python2
+# -*- coding: utf-8 -*-
 
 from wxbot import WXBot
 import requests
@@ -9,16 +9,25 @@ class MyWXBot(WXBot):
     def __init__(self):
         WXBot.__init__(self)
         self.robot_switch = True
+        self.away_status = False
 
     def auto_switch(self, msg):
         msg_data = msg['content']['data']
         stop_cmd = [u'机器人退下']
+        away_cmd = 'afk'
         start_cmd = [u'三花聚顶', u'飞龙在天', u'反清复明']
+        back_cmd = 'btk'
         if self.robot_switch:
             for i in stop_cmd:
                 if i == msg_data:
                     self.robot_switch = False
                     self.send_msg_by_uid(u'[BOT] ' + u'机器人已关闭！', msg['to_user_id'])
+            if msg_data == away_cmd and self.away_status == False:
+                self.away_status == True
+                self.send_msg_by_uid(u'[BOT] ' + u' Master away from keyboard！', msg['to_user_id'])
+            elif msg_data == back_cmd and self.away_status == True:
+                self.away_status == False
+                self.send_msg_by_uid(u'[BOT] ' + u' Master welcome back！', msg['to_user_id'])
         else:
             for i in start_cmd:
                 if i == msg_data:
@@ -27,6 +36,10 @@ class MyWXBot(WXBot):
 
     def handle_msg_all(self, msg):
         if not self.robot_switch and msg['msg_type_id'] != 1:
+            self.send_msg_by_uid(u'[BOT] ' + u'机器人已关闭...', msg['to_user_id'])
+            return
+        elif self.away_status and msg['msg_type_id'] != 1:
+            self.send_msg_by_uid(u'[BOT] ' + u' Master away from keyboard！', msg['to_user_id'])
             return
         if msg['msg_type_id'] == 1 and msg['content']['type'] == 0:  # reply to self
             self.auto_switch(msg)

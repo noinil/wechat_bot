@@ -1,5 +1,5 @@
-#!/usr/bin/env python
-# coding: utf-8
+#!/usr/bin/env python2
+# -*- coding: utf-8 -*-
 
 import os
 import sys
@@ -431,7 +431,7 @@ class WXBot:
                     msg_content['data'] = content
                 if self.DEBUG:
                     try:
-                        print '    %s[Text] %s' % (msg_prefix, msg_content['data'])
+                        print '    %s[Text] %s' % (msg_prefix.encode('utf-8'), msg_content['data'].encode('utf-8'))
                     except UnicodeEncodeError:
                         print '    %s[Text] (illegal text).' % msg_prefix
         elif mtype == 3:
@@ -568,7 +568,7 @@ class WXBot:
             user['name'] = HTMLParser.HTMLParser().unescape(user['name'])
 
             if self.DEBUG and msg_type_id != 0:
-                print '[MSG] %s:' % user['name']
+                print '[MSG] %s:' % user['name'].encode('utf-8')
             content = self.extract_msg_content(msg_type_id, msg)
             message = {'msg_type_id': msg_type_id,
                        'msg_id': msg['MsgId'],
