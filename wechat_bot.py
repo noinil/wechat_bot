@@ -1,6 +1,7 @@
 #!/usr/bin/env python2
 # -*- coding: utf-8 -*-
 
+import subprocess
 from wxbot import WXBot
 import requests
 bot_api="http://127.0.0.1:8000/get_response"
@@ -14,19 +15,19 @@ class MyWXBot(WXBot):
     def auto_switch(self, msg):
         msg_data = msg['content']['data']
         stop_cmd = [u'机器人退下']
-        away_cmd = 'afk'
+        away_cmd = u'afk'
         start_cmd = [u'三花聚顶', u'飞龙在天', u'反清复明']
-        back_cmd = 'btk'
+        back_cmd = u'btk'
         if self.robot_switch:
             for i in stop_cmd:
                 if i == msg_data:
                     self.robot_switch = False
                     self.send_msg_by_uid(u'[BOT] ' + u'机器人已关闭！', msg['to_user_id'])
             if msg_data == away_cmd and self.away_status == False:
-                self.away_status == True
+                self.away_status = True
                 self.send_msg_by_uid(u'[BOT] ' + u' Master away from keyboard！', msg['to_user_id'])
             elif msg_data == back_cmd and self.away_status == True:
-                self.away_status == False
+                self.away_status = False
                 self.send_msg_by_uid(u'[BOT] ' + u' Master welcome back！', msg['to_user_id'])
         else:
             for i in start_cmd:
@@ -36,13 +37,21 @@ class MyWXBot(WXBot):
 
     def handle_msg_all(self, msg):
         if not self.robot_switch and msg['msg_type_id'] != 1:
-            self.send_msg_by_uid(u'[BOT] ' + u'机器人已关闭...', msg['to_user_id'])
+            # self.send_msg_by_uid(u'[BOT] ' + u'机器人已关闭...', msg['to_user_id'])
             return
-        elif self.away_status and msg['msg_type_id'] != 1:
+        if self.away_status == True and msg['msg_type_id'] != 1:
             self.send_msg_by_uid(u'[BOT] ' + u' Master away from keyboard！', msg['to_user_id'])
             return
         if msg['msg_type_id'] == 1 and msg['content']['type'] == 0:  # reply to self
-            self.auto_switch(msg)
+            # print(msg["content"]["data"])
+            master_input = msg["content"]["data"]
+            if u'乐一个' in master_input:
+                reply = '[BOT] '
+                response = subprocess.Popen(['fortune', '-e', 'aj'], stdout=subprocess.PIPE).communicate()[0]
+                reply += response
+                self.send_msg_by_uid(reply, msg['to_user_id'])
+            else:
+                self.auto_switch(msg)
         elif msg['msg_type_id'] == 4 and msg['content']['type'] == 0:
             user_input = msg["content"]["data"]
             payload={"user_input":user_input}
@@ -80,8 +89,23 @@ class MyWXBot(WXBot):
                     else:
                         reply += u"对不起，只认字，其他杂七杂八的我都不认识，,,Ծ‸Ծ,,"
                     self.send_msg_by_uid(reply, msg['user']['id'])
+                else:
+                    if msg['content']['type'] == 0:  # text message
+                        user_input = msg["content"]["desc"]
+                        src_name = msg['content']['user']['name']
+                        # reply = '[BOT] @' + src_name + ' : '
+                        if u'乐一个' in user_input:
+                            reply = '[BOT] '
+                            response = subprocess.Popen(['fortune', '-e', 'aj'], stdout=subprocess.PIPE).communicate()[0]
+                            reply += response
+                            self.send_msg_by_uid(reply, msg['user']['id'])
+                        if u'讲个污笑话' in user_input:
+                            reply = '[BOT] '
+                            response = subprocess.Popen(['fortune', '-e', 'joke'], stdout=subprocess.PIPE).communicate()[0]
+                            reply += response
+                            self.send_msg_by_uid(reply, msg['user']['id'])
+
         elif msg['msg_type_id'] == 5 and msg['content']['type'] == 0:
-            print(msg)
             if msg['user']['name'] == u'小冰':
                 user_input = msg["content"]["data"]
                 payload={"user_input":user_input}
